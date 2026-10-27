@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WAHYU AI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+    }
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+    }
+    header h1 { margin: 0; color: #60a5fa; }
+    header p { color: #cbd5e1; }
+    #chat {
+      max-width: 750px;
+      margin: 20px auto;
+      padding: 16px;
+      min-height: 55vh;
+    }
+    .message {
+      padding: 13px;
+      border-radius: 12px;
+      margin: 12px 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+    }
+    .ai { background: #1e293b; }
+    .user {
+      background: #1d4ed8;
+      margin-left: 12%;
+    }
+    #form {
+      display: flex;
+      gap: 8px;
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 16px;
+      position: sticky;
+      bottom: 0;
+      background: #0f172a;
+    }
+    input {
+      min-width: 0;
+      flex: 1;
+      padding: 14px;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: #1e293b;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      padding: 14px 18px;
+      background: #2563eb;
+      color: white;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .5; }
+    footer {
+      text-align: center;
+      color: #94a3b8;
+      padding: 15px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WAHYU AI</h1>
+    <p>Asisten AI pribadi kamu</p>
+  </header>
+
+  <main id="chat" aria-live="polite">
+    <div class="message ai">
+      Halo! Saya WAHYU AI. Ada yang bisa saya bantu?
+    </div>
+  </main>
+
+  <form id="form">
+    <input id="prompt" maxlength="2000"
+      placeholder="Tulis pertanyaan..." autocomplete="off" required>
+    <button id="send" type="submit">Kirim</button>
+  </form>
+
+  <footer>WAHYU AI · Powered by OpenAI API</footer>
+
+  <script>
+    // Ganti dengan URL backend Render milikmu.
+    const API_URL = "https://GANTI-DENGAN-BACKEND.onrender.com/chat";
+
+    const form = document.getElementById("form");
+    const input = document.getElementById("prompt");
+    const chat = document.getElementById("chat");
+    const send = document.getElementById("send");
+
+    function addMessage(text, type) {
+      const div = document.createElement("div");
+      div.className = "message " + type;
+      div.textContent = text;
+      chat.appendChild(div);
+      div.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message || send.disabled) return;
+
+      addMessage(message, "user");
+      input.value = "";
+      send.disabled = true;
+      send.textContent = "...";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Permintaan gagal.");
+        }
+        addMessage(data.reply, "ai");
+      } catch (error) {
+        addMessage(
+          "Gagal terhubung ke AI. Periksa URL backend dan coba lagi.",
+          "ai"
+        );
+        console.error(error);
+      } finally {
+        send.disabled = false;
+        send.textContent = "Kirim";
+        input.focus();
+      }
+    });
+  </script>
+</body>
+</html>
